@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jose Murguia | Data Analytics & Web Development in Houston, TX</title>
+    <meta name="description" content="Portfolio of Jose Murguia, a data analytics and web development professional in Houston, TX. Specializing in Python, Power BI, and creating interactive data visualizations.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            color: #1f2937; 
+        }
+        header {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        canvas#particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0; 
+            width: 100%;
+            height: 100%;
+        }
+        .nav-link.active {
+            color: #000000;
+            font-weight: 700;
+        }
+        .chart-container {
+            cursor: pointer;
+            border: 1px solid #e5e7eb; 
+            border-radius: 0.75rem;
+            background-color: #f9fafb;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        .animate-bounce-slow {
+            animation: bounce 2s infinite;
+        }
+        .fade-in-element {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-element.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .apple-slider {
+            width: 100%;
+            height: 70vh;
+        }
+        .apple-slider .swiper-slide {
+            text-align: center;
+            font-size: 18px;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-position: top center;
+            background-size: cover; 
+            background-repeat: no-repeat;
+            color: #fff;
+        }
+        .apple-slider .slide-content {
+            z-index: 10;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .apple-slider .swiper-button-next,
+        .apple-slider .swiper-button-prev {
+            color: #fff;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        .apple-slider .swiper-button-next:hover,
+        .apple-slider .swiper-button-prev:hover {
+            opacity: 1;
+        }
+        .apple-slider .swiper-pagination-bullet {
+            background: #fff;
+            opacity: 0.6;
+        }
+        .apple-slider .swiper-pagination-bullet-active {
+            opacity: 1;
+        }
+
+        /* Styles for the new AI Trends Chart */
+        #ai-trends-chart-container .bar-name-label {
+            font-size: 14px;
+            fill: #374151;
+            font-weight: 500;
+            text-anchor: end;
+        }
+        #ai-trends-chart-container .bar-value-label {
+            font-size: 14px;
+            fill: white;
+            font-weight: 600;
+            text-anchor: end;
+        }
+        #ai-trends-chart-container .year-label {
+            font-size: 6rem;
+            font-weight: 800;
+            opacity: 0.1;
+            fill: #111827;
+        }
+        #ai-trends-chart-container .domain {
+            stroke: none;
+        }
+        #ai-trends-chart-container .tick line {
+            stroke: #e5e7eb;
+        }
+        #ai-trends-chart-container .tick text {
+            font-size: 12px;
+            fill: #6b7280;
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+    <header class="sticky top-0 z-50 w-full">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#" class="text-xl font-bold tracking-tight text-black">JOSE MURGUIA</a>
+                </div>
+                <div class="hidden md:block">
+                    <ul class="flex items-center space-x-10">
+                        <li><a href="#hero" class="nav-link text-base text-gray-600 hover:text-black transition-colors duration-300">HOME</a></li>
+                        <li><a href="#about" class="nav-link text-base text-gray-600 hover:text-black transition-colors duration-300">ABOUT</a></li>
+                        <li><a href="#projects" class="nav-link text-base text-gray-600 hover:text-black transition-colors duration-300">PROJECTS</a></li>
+                        <li><a href="#contact" class="nav-link text-base text-gray-600 hover:text-black transition-colors duration-300">CONTACT</a></li>
+                    </ul>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-black hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black">
+                        <span class="sr-only">Open main menu</span>
+                        <svg id="hamburger-icon" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        <svg id="close-icon" class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden border-t border-gray-200">
+            <ul class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <li><a href="#hero" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-black hover:bg-gray-100">HOME</a></li>
+                <li><a href="#about" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-black hover:bg-gray-100">ABOUT</a></li>
+                <li><a href="#projects" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-black hover:bg-gray-100">PROJECTS</a></li>
+                <li><a href="#contact" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-black hover:bg-gray-100">CONTACT</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main>
+
+        <section id="hero" class="relative h-[85vh] flex flex-col items-center justify-center text-center overflow-hidden px-4 bg-black">
+            <canvas id="particleCanvas"></canvas>
+            <div class="relative z-10">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white">JOSE MURGUIA</h1>
+                <p class="mt-4 text-lg text-gray-300">Web Development - Data Analytics - Data Visualization</p>
+            </div>
+            <div class="absolute bottom-10 z-10">
+                <a href="#about" class="animate-bounce-slow inline-block p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </a>
+            </div>
+        </section>
+
+        <section id="about" class="py-16 sm:py-24 bg-white">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="max-w-3xl mx-auto text-center text-gray-600 text-base fade-in-element">
+                    <p class="text-xl sm:text-2xl text-black mb-4 font-medium">I translate raw data into strategic advantage.</p>
+                    <p class="mb-4 leading-relaxed">My expertise lies at the intersection of data analytics and interactive web development. I don't just create reports; I build intuitive, data-driven experiences. Using Python for rigorous analysis and powerful visualization tools like Power BI and D3.js—as demonstrated by the charts below—I uncover the critical insights hidden within your information.</p>
+                    <p class="leading-relaxed">The result is clarity. You get a clear, compelling story that empowers your team to make confident, data-backed decisions.</p>
+                </div>
+                <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div id="force-graph-container" class="chart-container w-full h-[300px] sm:h-[350px] p-2 fade-in-element" title="Click to restart animation"></div>
+                    <div id="bar-chart-container" class="chart-container w-full h-[300px] sm:h-[350px] p-2 fade-in-element" title="Click to restart animation"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="py-16 sm:py-24 bg-gray-50">
+             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl font-bold tracking-tight text-black fade-in-element">Showcasing a Versatile Skill Set</h2>
+                <div class="max-w-3xl mx-auto mt-4 text-center text-gray-600 fade-in-element">
+                    <p class="mb-4 leading-relaxed">These projects highlight my capabilities across the full spectrum of data analysis—from in-depth, code-based exploration to polished, interactive business intelligence dashboards.</p>
+                </div>
+                <div class="mt-10 fade-in-element">
+                    <div class="flex flex-col sm:flex-row justify-center items-center gap-y-4 sm:gap-x-10 pb-4">
+                        <a href="#" class="project-link font-bold text-black" data-target="power-bi-viewer">Power BI Report</a>
+                        <a href="#" class="project-link text-gray-500 hover:text-black" data-target="joemur-viewer">Python: Data Exploration Part I</a>
+                        <a href="#" class="project-link text-gray-500 hover:text-black" data-target="slides-viewer">Data Exploration Part II</a>
+                    </div>
+                    <div id="project-viewer-container" class="mt-8 bg-white rounded-lg shadow-lg max-w-4xl mx-auto">
+                         <div class="px-4 py-4 text-left text-gray-500 fade-in-element project-description" data-project="power-bi-viewer"><p><strong>Power BI Report:</strong> An example of a user-friendly, interactive dashboard that allows for dynamic filtering and data discovery, providing at-a-glance insights for business users.</p></div>
+                        <div class="px-4 py-4 text-left text-gray-500 hidden fade-in-element project-description" data-project="joemur-viewer"><p><strong>Python Data Exploration Part I:</strong> A look at the complete analytical lifecycle, beginning with a detailed, technical notebook used to clean data and uncover initial patterns.</p></div>
+                        <div class="px-4 py-4 text-left text-gray-500 hidden fade-in-element project-description" data-project="slides-viewer"><p><strong>Data Exploration Part II:</strong> The conclusion of the analysis, where key findings are distilled into a clear, stakeholder-ready presentation designed to communicate the story behind the numbers.</p></div>
+                        <div id="power-bi-viewer" class="project-viewer"><iframe title="Power BI Report" src="https://app.powerbi.com/view?r=eyJrIjoiNTZhMDRmM2ItOTg0MC00YTFmLWJjYjUtNmEwYzRiNjEzZDAwIiwidCI6IjAxOGU1Y2Y3LTMxZTUtNDYwYS05ODlmLTcyMDRmZDUyOGI1YSJ9" frameborder="0" allowFullScreen="true" class="w-full rounded-b-lg h-[70vh]"></iframe></div>
+                        <div id="joemur-viewer" class="project-viewer hidden"><iframe title="JoeMur Exploration" src="https://joemur.com/Part_I_exploration.html" frameborder="0" allowFullScreen="true" class="w-full rounded-b-lg h-[70vh]"></iframe></div>
+                        <div id="slides-viewer" class="project-viewer hidden"><iframe title="Slide Deck" src="https://joemur.com/Part_II_slide_deck.slides.html" frameborder="0" allowFullScreen="true" class="w-full rounded-b-lg h-[70vh]"></iframe></div>
+                    </div>
+                </div>
+                
+                <!-- RECOMMENDED SECTION WITH NEW CHART -->
+                <div class="mt-20 fade-in-element">
+                    <h3 class="text-2xl font-bold tracking-tight text-black">The Race of AI Trends</h3>
+                     <div class="max-w-5xl mx-auto mt-8 bg-white p-4 sm:p-6 rounded-lg shadow-lg border border-gray-200">
+                        <p class="text-base text-gray-500 mb-8 text-center">Projected Market Size (Billions USD), 2024-2032</p>
+                        <div id="ai-trends-chart-container" class="relative ai-trends-chart"></div>
+                    </div>
+                </div>
+                 
+                <div class="mt-20 fade-in-element">
+                    <h3 class="text-2xl font-bold tracking-tight text-black">Website Projects</h3>
+                    <div class="mt-8">
+                        <div class="swiper apple-slider rounded-lg overflow-hidden">
+                            <div class="swiper-wrapper">
+                                <div class="swiper-slide" style="background-image:url(https://joemur.com/images/slide1.jpg)">
+                                    <div class="slide-content text-center">
+                                        <h2 class="text-4xl font-bold"></h2>
+                                        <p class="mt-2 text-xl"></p>
+                                    </div>
+                                </div>
+                                <div class="swiper-slide" style="background-image:url(https://joemur.com/images/slide2.jpg)">
+                                    <div class="slide-content text-center">
+                                        <h2 class="text-4xl font-bold"></h2>
+                                        <p class="mt-2 text-xl"></p>
+                                    </div>
+                                </div>
+                                <div class="swiper-slide" style="background-image:url(https://joemur.com/images/slide3.jpg)">
+                                    <div class="slide-content text-center">
+                                        <h2 class="text-4xl font-bold"></h2>
+                                        <p class="mt-2 text-xl"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-pagination"></div>
+                        </div>
+                    </div>
+                </div>
+
+             </div>
+        </section>
+
+        <section id="contact" class="py-16 sm:py-24 bg-white">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                     <h2 class="text-3xl font-bold tracking-tight text-black fade-in-element">Contact Me</h2>
+                     <p class="mt-4 text-lg text-gray-600 fade-in-element">Have a question or want to work together?</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
+                    <div class="fade-in-element">
+                        <form id="contact-form" class="space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div><label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label><input type="text" id="first_name" name="first_name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black" required></div>
+                                <div><label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label><input type="text" id="last_name" name="last_name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black"></div>
+                            </div>
+                            <div><label for="email" class="block text-sm font-medium text-gray-700">Email</label><input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black" required></div>
+                            <div><label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number <span class="text-gray-400">(Optional)</span></label><input type="tel" id="phone_number" name="phone_number" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black"></div>
+                            <div><label for="message" class="block text-sm font-medium text-gray-700">Message</label><textarea id="message" name="message" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black" required></textarea></div>
+                            <div class="g-recaptcha" data-sitekey="6LdkW2grAAAAAMpjfTgRRXaqcoaPP5FXvl--5fMJ"></div>
+                            <div><button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">Send Message</button></div>
+                        </form>
+                        <div id="success-message" class="hidden mt-4 p-4 rounded-md bg-green-50 text-green-700"><p>Thank you for your message! I'll get back to you shortly.</p></div>
+                        <div id="error-message" class="hidden mt-4 p-4 rounded-md bg-red-50 text-red-700"><p>Something went wrong. Please complete the CAPTCHA and try again.</p></div>
+                    </div>
+                    <div class="fade-in-element">
+                         <h3 class="text-2xl font-semibold text-black">Contact Information</h3>
+                         <div class="mt-6 pt-6 border-t border-gray-200 space-y-4 text-lg text-gray-700">
+                             <p><strong>Location:</strong><br>Houston, Texas</p>
+                             <p><strong>Phone:</strong><br>(281) 772-1495</p>
+                             <p><strong>Email:</strong><br>murguia.joe@gmail.com</p>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+        
+            const mobileMenuButton=document.getElementById("mobile-menu-button"),mobileMenu=document.getElementById("mobile-menu"),hamburgerIcon=document.getElementById("hamburger-icon"),closeIcon=document.getElementById("close-icon");mobileMenuButton.addEventListener("click",()=>{mobileMenu.classList.toggle("hidden"),hamburgerIcon.classList.toggle("hidden"),closeIcon.classList.toggle("hidden")}),document.querySelectorAll(".nav-link-mobile").forEach(e=>{e.addEventListener("click",()=>{mobileMenu.classList.add("hidden"),hamburgerIcon.classList.remove("hidden"),closeIcon.classList.add("hidden")})});
+            const heroSection=document.getElementById("hero"),canvas=document.getElementById("particleCanvas"),ctx=canvas.getContext("2d");canvas.width=heroSection.clientWidth,canvas.height=heroSection.clientHeight;let width=canvas.width,height=canvas.height;const particleCount=200,particles=[],colors=["#FFFFFF","#F5F5F5","#E8E8E8","#DCDCDC","#F0F0F0"];let centralRadius=Math.min(width,height)*.4;class Particle{constructor(){this.centerX=width/2,this.centerY=height/2,this.reset()}createShape(){const e=Math.floor(3*Math.random()+3),t=[];for(let s=0;s<e;s++){const o=(s/e)*Math.PI*2,i=this.baseSize*(.6+.4*Math.random());t.push({x:Math.cos(o)*i,y:Math.sin(o)*i})}return t}reset(){this.baseSize=1.5*Math.random()+1.5,this.maxRadius=centralRadius*(1.2+.5*Math.random()),this.radius=this.maxRadius,this.angle=2*Math.random()*Math.PI,this.angularVelocity=.005*(Math.random()-.5)+.0025,this.baseRadiusVelocity=.025*Math.random()+.025;const e=colors[Math.floor(Math.random()*colors.length)];this.rgbColor=e.match(/\w\w/g).map(e=>parseInt(e,16)),this.rotation=2*Math.random()*Math.PI,this.rotationSpeed=.005*(Math.random()-.5),this.shape=this.createShape()}update(){const e=this.radius/this.maxRadius;this.scale=1.5*(1.5-e),this.opacity=Math.max(0,this.scale/2.25),this.angle+=this.angularVelocity,this.radius-=this.baseRadiusVelocity*this.scale,this.x=this.centerX+Math.cos(this.angle)*this.radius,this.y=this.centerY+Math.sin(this.angle)*this.radius,this.rotation+=this.rotationSpeed,this.radius<1&&this.reset()}draw(){ctx.save(),ctx.translate(this.x,this.y),ctx.rotate(this.rotation),ctx.scale(this.scale,this.scale),ctx.fillStyle=`rgba(${this.rgbColor[0]}, ${this.rgbColor[1]}, ${this.rgbColor[2]}, ${this.opacity})`,ctx.beginPath(),ctx.moveTo(this.shape[0].x,this.shape[0].y);for(let e=1;e<this.shape.length;e++)ctx.lineTo(this.shape[e].x,this.shape[e].y);ctx.closePath(),ctx.fill(),ctx.restore()}}
+            function initParticles(){particles.length=0;for(let e=0;e<particleCount;e++)particles.push(new Particle)}function animateParticles(){ctx.fillStyle="#000000",ctx.fillRect(0,0,width,height),particles.forEach(e=>{e.update(),e.draw()}),requestAnimationFrame(animateParticles)}const resizeObserver=new ResizeObserver(()=>{canvas.width=heroSection.clientWidth,canvas.height=heroSection.clientHeight,width=canvas.width,height=canvas.height,centralRadius=Math.min(width,height)*.4,initParticles()});resizeObserver.observe(heroSection),initParticles(),animateParticles();
+            const projectLinks=document.querySelectorAll(".project-link"),projectViewers=document.querySelectorAll(".project-viewer"),projectDescriptions=document.querySelectorAll(".project-description");projectLinks.forEach(e=>{e.addEventListener("click",t=>{t.preventDefault();const s=e.getAttribute("data-target");projectLinks.forEach(e=>{e.classList.remove("font-bold","text-black"),e.classList.add("text-gray-500")}),e.classList.add("font-bold","text-black"),e.classList.remove("text-gray-500"),projectViewers.forEach(e=>{e.id===s?e.classList.remove("hidden"):e.classList.add("hidden")}),projectDescriptions.forEach(e=>{e.getAttribute("data-project")===s?e.classList.remove("hidden"):e.classList.add("hidden")})})});const sections=document.querySelectorAll("main section"),navLi=document.querySelectorAll("header nav ul li a");window.addEventListener("scroll",()=>{let e="hero";sections.forEach(t=>{const s=t.offsetTop;pageYOffset>=s-70&&(e=t.getAttribute("id"))}),navLi.forEach(t=>{t.classList.remove("active"),t.getAttribute("href")==`#${e}`&&t.classList.add("active")})});
+            const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("is-visible")})},{threshold:.1}),elementsToAnimate=document.querySelectorAll(".fade-in-element");elementsToAnimate.forEach(e=>observer.observe(e));
+            function renderForceGraph(e){const t=d3.select(`#${e}`);if(t.empty())return;const s=t.node().clientWidth,o=t.node().clientHeight,i=t.append("svg").attr("width",s).attr("height",o),n=i.append("g").attr("stroke","#9ca3af").attr("stroke-opacity",.6),a=i.append("g").attr("stroke","#e5e7eb").attr("stroke-width",1.5),r=d3.forceSimulation().force("link",d3.forceLink().id(e=>e.id).distance(50)).force("charge",d3.forceManyBody().strength(-150)).force("center",d3.forceCenter(s/2,o/2));function l(e){const t=e.nodes,s=e.links,o=a.selectAll("circle").data(t,e=>e.id);o.exit().remove(),o.enter().append("circle").attr("r",5).attr("fill","#374151").append("title").text(e=>e.id);const i=n.selectAll("line").data(s,e=>`${e.source.id}-${e.target.id}`);i.exit().remove(),i.enter().append("line").attr("stroke-width",1.5),r.nodes(t),r.force("link").links(s),r.alpha(1).restart()}r.on("tick",()=>{n.selectAll("line").attr("x1",e=>e.source.x).attr("y1",e=>e.source.y).attr("x2",e=>e.target.x).attr("y2",e=>e.target.y),a.selectAll("circle").attr("cx",e=>e.x).attr("cy",e=>e.y)});const c=()=>{const e=25,t=Array.from({length:e},(_,e)=>({id:e}));return{nodes:t,links:Array.from({length:e-1},()=>({source:Math.floor(Math.random()*e),target:Math.floor(Math.random()*e)})).filter(e=>e.source!==e.target)}};l(c()),t.on("click",()=>l(c()))}
+            function renderBarChart(e){const t=d3.select(`#${e}`);if(t.empty())return;const s=t.node().clientWidth,o=t.node().clientHeight,i={top:20,right:20,bottom:20,left:20},n=s-i.left-i.right,a=o-i.top-i.bottom,r=t.append("svg").attr("width",s).attr("height",o),l=r.append("g").attr("transform",`translate(${i.left}, ${i.top})`);function c(e){const t=d3.scaleBand().domain(e.map(e=>e.label)).range([0,n]).padding(.2),s=d3.scaleLinear().domain([0,110]).range([a,0]),o=l.selectAll(".bar").data(e,e=>e.label);o.enter().append("rect").attr("class","bar").attr("fill","#111827").attr("x",e=>t(e.label)).attr("width",t.bandwidth()).attr("y",a).attr("height",0).merge(o).transition().duration(800).attr("x",e=>t(e.label)).attr("width",t.bandwidth()).attr("y",e=>s(e.value)).attr("height",e=>a-s(e.value))}const d=()=>[{label:"A",value:Math.floor(100*Math.random())+10},{label:"B",value:Math.floor(100*Math.random())+10},{label:"C",value:Math.floor(100*Math.random())+10},{label:"D",value:Math.floor(100*Math.random())+10},{label:"E",value:Math.floor(100*Math.random())+10},{label:"F",value:Math.floor(100*Math.random())+10}];c(d()),t.on("click",()=>c(d()))}
+            renderForceGraph("force-graph-container"),renderBarChart("bar-chart-container");
+            
+            // AI TRENDS CHART SCRIPT
+            function renderAITrendsChart() {
+                const rawData = [
+                    {year: 2024, name: 'Generative AI', value: 65}, {year: 2024, name: 'AI in Healthcare', value: 28}, {year: 2024, name: 'AI in Cybersecurity', value: 27}, {year: 2024, name: 'AI in Finance', value: 33}, {year: 2024, name: 'AI Hardware (GPUs)', value: 125},
+                    {year: 2025, name: 'Generative AI', value: 98}, {year: 2025, name: 'AI in Healthcare', value: 37}, {year: 2025, name: 'AI in Cybersecurity', value: 34}, {year: 2025, name: 'AI in Finance', value: 42}, {year: 2025, name: 'AI Hardware (GPUs)', value: 160},
+                    {year: 2027, name: 'Generative AI', value: 200}, {year: 2027, name: 'AI in Healthcare', value: 61}, {year: 2027, name: 'AI in Cybersecurity', value: 52}, {year: 2027, name: 'AI in Finance', value: 68}, {year: 2027, name: 'AI Hardware (GPUs)', value: 240},
+                    {year: 2030, name: 'Generative AI', value: 668}, {year: 2030, name: 'AI in Healthcare', value: 158}, {year: 2030, name: 'AI in Cybersecurity', value: 88}, {year: 2030, name: 'AI in Finance', value: 130}, {year: 2030, name: 'AI Hardware (GPUs)', value: 350},
+                    {year: 2032, name: 'Generative AI', value: 1300}, {year: 2032, name: 'AI in Healthcare', value: 240}, {year: 2032, name: 'AI in Cybersecurity', value: 102}, {year: 2032, name: 'AI in Finance', value: 180}, {year: 2032, name: 'AI Hardware (GPUs)', value: 450}
+                ];
+                
+                const margin = {top: 40, right: 20, bottom: 20, left: 150};
+                const container = document.getElementById('ai-trends-chart-container');
+                if (!container) return; 
+                const width = container.clientWidth - margin.left - margin.right;
+                const height = 400 - margin.top - margin.bottom;
+                const barHeight = 45;
+                const n = 5;
+                const transitionDuration = 250;
+                const totalAnimationTime = 12000;
+                const pauseDuration = 3000;
+                
+                const svg = d3.select("#ai-trends-chart-container").append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+                    
+                const yearLabel = svg.append("text")
+                    .attr("class", "year-label")
+                    .attr("text-anchor", "end")
+                    .attr("y", height - 25)
+                    .attr("x", width - 25);
+                
+                const names = new Set(rawData.map(d => d.name));
+                const dataByGroup = d3.group(rawData, d => d.name);
+                const interpolators = new Map();
+                
+                for (const name of names) {
+                    const groupData = dataByGroup.get(name);
+                    const years = groupData.map(d => d.year);
+                    const values = groupData.map(d => d.value);
+                    interpolators.set(name, d3.scaleLinear(years, values));
+                }
+
+                let animationTimer;
+                const startYearValue = 2024;
+                const endYearValue = 2032;
+
+                const xAxis = svg.append("g").attr("class", "axis").style("opacity", 0.6);
+
+                function updateFrame(year) {
+                    const currentData = Array.from(names, name => ({
+                        name,
+                        value: interpolators.get(name)(year)
+                    })).sort((a,b) => b.value - a.value).slice(0, n);
+                    
+                    const x = d3.scaleLinear()
+                        .domain([0, d3.max(currentData, d => d.value)])
+                        .range([0, width]);
+
+                    xAxis.transition().duration(transitionDuration).call(d3.axisTop(x).ticks(5, "s").tickSize(-height));
+
+                    const y = d3.scaleBand()
+                        .domain(currentData.map(d => d.name))
+                        .range([0, (barHeight + 10) * n])
+                        .padding(0.1);
+
+                    svg.selectAll("rect.bar")
+                        .data(currentData, d => d.name)
+                        .join("rect")
+                        .attr("class", "bar")
+                        .style("fill", "#111827")
+                        .attr("rx", 6).attr("ry", 6)
+                        .transition().duration(transitionDuration).ease(d3.easeLinear)
+                        .attr("y", d => y(d.name))
+                        .attr("height", y.bandwidth())
+                        .attr("x", 0)
+                        .attr("width", d => x(d.value));
+
+                    svg.selectAll("text.bar-name-label")
+                        .data(currentData, d => d.name)
+                        .join("text")
+                        .attr("class", "bar-name-label")
+                        .attr("x", -10)
+                        .text(d => d.name)
+                        .transition().duration(transitionDuration).ease(d3.easeLinear)
+                        .attr("y", d => y(d.name) + y.bandwidth() / 2 + 5);
+                    
+                    svg.selectAll("text.bar-value-label")
+                        .data(currentData, d => d.name)
+                        .join("text")
+                        .attr("class", "bar-value-label")
+                        .html(d => `<strong>$${d.value.toFixed(0)}B</strong>`)
+                        .transition().duration(transitionDuration).ease(d3.easeLinear)
+                        .attr("x", d => x(d.value) - 10)
+                        .attr("y", d => y(d.name) + y.bandwidth() / 2 + 5);
+                    
+                    yearLabel.text(Math.floor(year));
+                }
+
+                function runAnimationCycle() {
+                    if (animationTimer) animationTimer.stop();
+
+                    animationTimer = d3.timer((elapsed) => {
+                        const t = elapsed / totalAnimationTime;
+                        const currentYear = d3.interpolate(startYearValue, endYearValue)(t);
+                        
+                        if (currentYear >= endYearValue) {
+                            updateFrame(endYearValue);
+                            animationTimer.stop();
+                            setTimeout(runAnimationCycle, pauseDuration);
+                        } else {
+                            updateFrame(currentYear);
+                        }
+                    });
+                }
+                
+                runAnimationCycle();
+            }
+            renderAITrendsChart();
+
+
+            const contactForm=document.getElementById("contact-form"),successMessage=document.getElementById("success-message"),errorMessage=document.getElementById("error-message"),n8nWebhookUrl="https://n8n.joemur.com/webhook/52d3d76a-fc23-411e-8ca5-6670d5bd4dd2";contactForm.addEventListener("submit",async e=>{e.preventDefault();const t=contactForm.querySelector('button[type="submit"]'),s=t.innerHTML,o=grecaptcha.getResponse();if(0===o.length)return errorMessage.innerHTML="<p>Please complete the reCAPTCHA.</p>",void errorMessage.classList.remove("hidden");t.disabled=!0,t.innerHTML="Sending...";const i=new FormData(contactForm),n=Object.fromEntries(i.entries());try{const e=await fetch(n8nWebhookUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(n)});if(!e.ok)throw new Error("Network response was not ok.")
+            successMessage.classList.remove("hidden"),errorMessage.classList.add("hidden"),contactForm.reset(),grecaptcha.reset()}catch(e){console.error("There was a problem with the fetch operation:",e),errorMessage.innerHTML="<p>Something went wrong. Please try again later.</p>",errorMessage.classList.remove("hidden"),successMessage.classList.add("hidden")}finally{t.disabled=!1,t.innerHTML=s}});
+            const swiper=new Swiper(".apple-slider",{effect:"slide",grabCursor:!0,centeredSlides:!0,slidesPerView:"auto",loop:!0,autoplay:{delay:4e3,disableOnInteraction:!1},pagination:{el:".swiper-pagination",clickable:!0},navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"}});
+        });
+    </script>
+</body>
+</html>
